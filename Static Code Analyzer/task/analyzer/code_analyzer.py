@@ -8,9 +8,13 @@ errors_dict = {"S001": "Too long",
                "S003": "Unnecessary semicolon",
                "S004": "At least two spaces required before inline comments",
                "S005": "TODO found",
-               "S006": "More than two blank lines preceding a code line"}
+               "S006": "More than two blank lines preceding a code line",
+               "S007": "Too many spaces after 'class'",
+               "S008": "Class name 'user' should use CamelCase",
+               "S009": "Function name 'Print2' should use snake_case"}
 
 exclude_list = ["__init__.py", "tests.py"]
+
 
 class BestAnalyzer:
 
@@ -41,7 +45,7 @@ class BestAnalyzer:
                 self.add_error(self.curr_file, linenum, "S004")
 
     def check_ident_spaces(self, line, linenum):
-        template = r"\w{1}"
+        template = r"\S{1}"
         re_obj = re.split(template, line, maxsplit=1)
         if not len(re_obj[0]) % 4 == 0 and re_obj[0] != "\n" and line[0] != "#":
             self.add_error(self.curr_file, linenum, "S002")
@@ -65,6 +69,30 @@ class BestAnalyzer:
             if self.blankline_cnt > 2:
                 self.add_error(self.curr_file, linenum, "S006")
             self.blankline_cnt = 0
+
+    def check_classspaces(self, line, linenum):
+        template = r"^class\s{2,}\w"
+        re_obj = re.search(template, line)
+        if re_obj:
+            self.add_error(self.curr_file, linenum, "S007")
+
+    def check_defspaces(self, line, linenum):
+        template = r"def\s{2,}\w"
+        re_obj = re.search(template, line)
+        if re_obj:
+            self.add_error(self.curr_file, linenum, "S007")
+
+    def check_classcamels(self, line, linenum):
+        template = r"^class\s{1,}[^A-Z][a-z]+([A-Z]|)"
+        re_obj = re.search(template, line)
+        if re_obj:
+            self.add_error(self.curr_file, linenum, "S008")
+
+    def check_functsnake(self, line, linenum):
+        template = r"def ([A-Z]|[a-z]+[A-Z])"
+        re_obj = re.search(template, line)
+        if re_obj:
+            self.add_error(self.curr_file, linenum, "S009")
 
     def checkcode(self):
         temp_list = []
@@ -91,6 +119,10 @@ class BestAnalyzer:
                         self.check_semicolor(line, linenum)
                         self.check_todo(line, linenum)
                         self.check_blanklines(line, linenum)
+                        self.check_classspaces(line, linenum)
+                        self.check_defspaces(line, linenum)
+                        self.check_classcamels(line, linenum)
+                        self.check_functsnake(line, linenum)
                         linenum += 1
 
     def printallerrors(self):
